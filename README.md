@@ -1,23 +1,24 @@
-#🕵️‍♂️ SHATTERED MIND
-Unreal Engine 5.6 기반 3인칭 미스터리 수사 게임 > "폐쇄된 정신병원, 그곳에 남겨진 단서를 통해 진실을 파헤치는 형사의 이야기"
+# 🕵️‍♂️ SHATTERED MIND
+Unreal Engine 5.6 기반 3인칭 드라마, 심리, 미스터리, 추리 게임
 
-(▲ 여기에 게임 타이틀 화면이나 대표 스크린샷 이미지 주소를 넣으세요)
+<img width="940" height="586" alt="image" src="https://github.com/user-attachments/assets/66ac1840-ed97-4558-a7fa-a0ae34ec7467" />
 
-##📝 Project Overview (프로젝트 개요)
+
+## Project Overview (프로젝트 개요)
 개발 기간: 2025.09 ~ 2025.11 (약 2개월)
 
-개발 인원: 1인 개발 (기획, 프로그래밍, 레벨 디자인)
+개발 인원: 3인 개발 (클라이언트 프로그래머)
 
 개발 환경: Unreal Engine 5.6, Visual Studio 2022 (C++)
 
-장르: 3인칭 어드벤처 / 미스터리
+장르: 3인칭 드라마/심리/미스터리/추리
 
 핵심 키워드: Investigation, Puzzle, Story-driven
 
-##📺 Gameplay Video
-(▲ 클릭 시 유튜브 영상으로 이동합니다. YOUR_VIDEO_ID 부분을 유튜브 영상 ID로 교체하세요)
+## Gameplay Video
+https://youtu.be/0hDY0TgUndM
 
-##⚙️ Key Features & Tech Stack (핵심 기술 구현)
+## Key Features & Tech Stack (핵심 기술 구현)
 1. 확장성 있는 상호작용 시스템 (Interaction Architecture)
 LineTrace & Interface 기반 설계: LineTraceSingleByChannel을 사용하여 플레이어 시선 기준의 정밀한 객체 감지를 구현했습니다.
 
@@ -35,8 +36,8 @@ Observer Pattern 응용: 단서 획득 시 데이터를 갱신하고, 델리게�
 
 Manager Class: UnlockMemoWrap 함수 등을 통해 데이터 무결성을 검증(중복 해금 방지)한 후 UI를 업데이트하도록 설계했습니다.
 
-##🛠️ Trouble Shooting (문제 해결)
-🚀 NPC 상호작용 안정성 확보 (Interaction Stability)
+## Trouble Shooting (문제 해결)
+###NPC 상호작용 안정성 확보 (Interaction Stability)
 문제 상황 (Issue) > NPC가 플레이어를 바라보기 위해 회전하거나 애니메이션을 재생할 때, Mesh의 불규칙한 형태 때문에 LineTrace 판정이 끊기거나 불안정한 현상이 발생했습니다.
 
 해결 방법 (Solution) > **'판정과 시각화의 분리(Decoupling Logic from Visuals)'**를 적용했습니다.
@@ -58,7 +59,7 @@ void ANPC::SetupCollisionForMovingNPC()
     Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap); // 캐릭터가 끼이는 현상 방지
 }
 
-##📂 Source Code Structure
+## Source Code Structure
 APolice: 메인 캐릭터 컨트롤러. 입력 처리 및 상호작용 레이캐스팅 담당.
 
 ANPC: FSM 기반은 아니지만, 상태에 따라 대화 및 회전 로직 수행.
@@ -67,7 +68,6 @@ APickUp: 아이템 및 단서 객체. 인터페이스 구현체.
 
 UI_System: PoliceMemoWidget, PoliceHUD 등 데이터 바인딩 기반 위젯 클래스.
 
-📬 Contact
+## Contact
 Email: namsoeun012@gmail.com
-
-Portfolio: 
+Notion: https://www.notion.so/SHATTEREDMIND-2d2ace3557038098b57ddeed107cfbde?source=copy_link 
