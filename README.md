@@ -84,5 +84,5 @@ APickUp: 아이템 및 단서 객체. 인터페이스 구현체.<br><br>
 UI_System: PoliceMemoWidget, PoliceHUD 등 데이터 바인딩 기반 위젯 클래스.<br><br>
 <br><br>
 ## Contact
-Email: namsoeun012@gmail.com
+Email: namsoeun012@gmail.com<br>
 Notion: https://www.notion.so/SHATTEREDMIND-2d2ace3557038098b57ddeed107cfbde?source=copy_link 
