@@ -18,9 +18,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "AIController.h" // 20251029 희빈 플레이어와 충돌시 npc 날라가는 현상 제어위함
-
-//#include "TimerManager.h"      // FTimerHandle, SetTimer 등 타이머 관련
+#include "AIController.h" //플레이어와 충돌시 npc 점프하는 현상 제어위함
 
 // Sets default values
 ANPC::ANPC()
@@ -80,22 +78,12 @@ void ANPC::BeginPlay()
 				ShowDialogLine();
 				// 다음 문장 바로 진행 가능하도록 인덱스 증가
 				CurrentDialogIndex = 1;
-
-				/*
-				APolice* Player = Cast<APolice>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-				if (Player)
-				{
-					Player->UnlockMemoWrap(1);
-					UE_LOG(LogTemp, Warning, TEXT("Police auto-unlocked Memo 1"));
-				}*/
 			}, 0.3f, false);
 
 
 	}
 
-	// ===[20251029 희빈 플레이어와 충돌시 npc 날라가는 현상 제어위함]========================
-	// AIController가 있으면 → "움직이는 NPC"
-   // 없으면 → "고정된 NPC"
+	// 플레이어와 충돌시 npc 날아가는 현상 제어
 	if (GetController() && Cast<AAIController>(GetController()))
 	{
 		SetupCollisionForMovingNPC();
@@ -116,7 +104,7 @@ void ANPC::BeginPlay()
 		MoveComp->TouchForceFactor = 0.f;               // 접촉으로 주는 힘 제거 (필요하면 조정)
 		MoveComp->bTouchForceScaledToMass = false;
 
-		// (선택) 스코프된 이동 업데이트는 불필요하면 끔
+		//스코프된 이동 업데이트는 불필요하면 끔
 		MoveComp->bEnableScopedMovementUpdates = false;
 	}
 
@@ -124,8 +112,6 @@ void ANPC::BeginPlay()
 	{
 		// 플레이어와 충돌 시 튀지 않게 겹침(혹은 상황에 따라 Block으로)
 		Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		Capsule->SetSimulatePhysics(false);    // NavMesh 이동 안정화
-		// Capsule->SetEnableGravity(false);   // 필요 시 사용
 	}
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 	GetCharacterMovement()->bUseRVOAvoidance = false;
@@ -139,7 +125,7 @@ void ANPC::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//NPC한테 말 걸면 플레이어 방향으로 부드럽게 회전 기능
-	if (bRotateToPlayer || bReturnToOriginal)  // 회전 상태가 켜져 있으면 계속 Tick에서 회전
+	if (bRotateToPlayer || bReturnToOriginal)  //회전 상태가 켜져 있으면 계속 Tick에서 회전
 	{
 		FRotator CurrentRotation = GetActorRotation();
 		float CurrentYaw = CurrentRotation.Yaw;
@@ -294,11 +280,11 @@ void ANPC::BeginInteract()
 			bReturnToOriginal = false;
 		}
 
-		// 플레이어 입력 잠금
+		//플레이어 입력 잠금
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			PC->SetIgnoreLookInput(true);   // 마우스 시점 이동 잠금
-			PC->SetIgnoreMoveInput(true);   // 키보드 이동 입력도 잠금
+			PC->SetIgnoreLookInput(true);   //마우스 시점 이동 잠금
+			PC->SetIgnoreMoveInput(true);   //키보드 이동 입력도 잠금
 
 			FInputModeGameAndUI InputMode;
 			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
@@ -314,7 +300,7 @@ void ANPC::BeginInteract()
 //대화종료처리
 void ANPC::EndInteract()
 {
-	// 이미 종료 상태면 아무것도 하지 않음
+	//이미 종료 상태면 아무것도 하지 않음
 	if (!bIsInteracting)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("EndInteract called but bIsInteracting==false. Proceeding with cleanup anyway."));
@@ -322,7 +308,7 @@ void ANPC::EndInteract()
 	bIsInteracting = false;
 	bHasTalkedBefore = true;
 
-	// 입력 복구를 약간 늦게 (0.3초 후)
+	//입력 복구를 약간 늦게 (0.3초 후)
 	FTimerHandle InputDelayHandle;
 	GetWorld()->GetTimerManager().SetTimer(InputDelayHandle, [this]()
 		{
@@ -333,7 +319,7 @@ void ANPC::EndInteract()
 				FInputModeGameOnly InputMode;
 				PC->SetInputMode(InputMode);
 			}
-			// 스프링암 길이 복구
+			//스프링암 길이 복구
 			if (CachedPlayer && CachedPlayer->springArmComp)
 			{
 				CachedPlayer->springArmComp->TargetArmLength = OriginalArmLength;
@@ -342,7 +328,7 @@ void ANPC::EndInteract()
 
 	UE_LOG(LogTemp, Warning, TEXT("EndInteract called - cleaning up"));
 
-	// 플레이어 입력 다시 활성화
+	//플레이어 입력 다시 활성화
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
 		PC->SetIgnoreLookInput(false);
@@ -358,21 +344,20 @@ void ANPC::EndInteract()
 		UE_LOG(LogTemp, Warning, TEXT("SpringArm length restored"));
 	}
 	// 원래 보던 방향 복구 (NPC가 idle 상태 유지하게)
-	// → BeginInteract에서 회전값 저장해두면 여기서 복원 가능
-	// 예: BeginInteract 전에 OriginalRotation 멤버변수 저장
+	// BeginInteract에서 회전값 저장해두면 여기서 복원 가능
 	TargetRotation = OriginalRotation;
-	bReturnToOriginal = true;   //원래 방향으로 복귀 시작
+	bReturnToOriginal = true;//원래 방향으로 복귀 시작
 	bRotateToPlayer = false;
 
-	// 대화 종료 시 위젯 제거
+	//대화 종료 시 위젯 제거
 	if (DialogWidget)
 	{
 		DialogWidget->RemoveFromParent();
 		DialogWidget = nullptr;
 	}
 	CurrentDialogIndex = 0;
-	bHasTalkedBefore = true; // 대화가 끝났으니 true로 설정
-	bCaseFileShown = false; // 사건파일 다시 열 수 있게 초기화
+	bHasTalkedBefore = true; //대화가 끝났으니 true로 설정
+	bCaseFileShown = false; //사건파일 다시 열 수 있게 초기화
 
 
 	APolice* PoliceCharacter = Cast<APolice>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
@@ -406,33 +391,25 @@ void ANPC::Interact(APolice* _Playercharacter)
 	if (!_Playercharacter) return;
 
 	CachedPlayer = _Playercharacter;
-	/*
-	// 스프링암 길이 조절
-	if (CachedPlayer->springArmComp)
-	{
-		CachedPlayer->springArmComp->TargetArmLength = 100.f;
-		CachedPlayer->springArmComp->TargetArmLength = FMath::Min(DesiredArmLength, CachedPlayer->springArmComp->TargetArmLength);
-	}
-	*/
-
+	
 	// 대화 일시정지 중이면 아무것도 안 함
 	if (bDialogPaused)
 	{
 		CloseCaseFileWidget();
-		bDialogPaused = false;       // 이제 다음 문장 진행 가능
-		ShowNextLine();          // 바로 다음 대사 진행
+		bDialogPaused = false;// 이제 다음 문장 진행 가능
+		ShowNextLine(); // 바로 다음 대사 진행
 		return;
 	}
 
 
-	// 재시도시 이미 대화한 NPC 처리
+	//재시도시 이미 대화한 NPC 처리
 	if (bHasTalkedBefore)
 	{
-		BeginInteract(); // BeginInteract에서 이미 대화한 적 있는지 처리
+		BeginInteract(); //BeginInteract에서 이미 대화한 적 있는지 처리
 		return;
 	}
 
-	// InteractDebounce 체크
+	//InteractDebounce 체크
 	float Now = GetWorld()->GetTimeSeconds();
 	if (Now - LastInteractTime < InteractDebounce)
 	{
@@ -442,7 +419,7 @@ void ANPC::Interact(APolice* _Playercharacter)
 	LastInteractTime = Now;
 
 
-	// 첫 대화 시작은 BeginInteract()로
+	//첫 대화 시작은 BeginInteract()로
 	if (!bIsInteracting)
 	{
 		BeginInteract();
@@ -464,7 +441,7 @@ void ANPC::ShowDialogLine()
 		return;
 	}
 
-	// 위젯 생성
+	//위젯 생성
 	if (DialogWidgetClass && !DialogWidget)
 	{
 		DialogWidget = CreateWidget<UDialogWidget>(GetWorld(), DialogWidgetClass);
@@ -472,10 +449,10 @@ void ANPC::ShowDialogLine()
 			DialogWidget->AddToViewport();
 	}
 
-	// UI 갱신
+	//UI 갱신
 	if (DialogWidget)
 	{
-		// 디버그용 로그
+		//디버그용 로그
 		UE_LOG(LogTemp, Warning, TEXT("ShowDialogLine: Showing index %d"), CurrentDialogIndex);
 		DialogWidget->UpdateDialog(DialogLines[CurrentDialogIndex]);
 	}
@@ -483,32 +460,31 @@ void ANPC::ShowDialogLine()
 
 void ANPC::ShowNextLine()
 {
-	if (bDialogPaused) return; // 사건파일 열려있으면 진행 금지
+	if (bDialogPaused) return; //사건파일 열려있으면 진행 금지
 
 	if (!DialogLines.IsValidIndex(CurrentDialogIndex))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ShowNextLine: index %d invalid -> EndInteract()"), CurrentDialogIndex);
-		// 마지막 문장 이후 대화 종료
+		//마지막 문장 이후 대화 종료
 		EndInteract();
 		return;
 	}
-	// 대화 종료 직전 사운드 재생
+	//대화 종료 직전 사운드 재생
 	if (CurrentDialogIndex == DialogLines.Num() - 1)
 	{
-		if (DialogEndSound) // 미리 UPROPERTY로 선언해둔 사운드
+		if (DialogEndSound) //미리 UPROPERTY로 선언해둔 사운드
 		{
 			UGameplayStatics::PlaySound2D(this, DialogEndSound);
 		}
 	}
 
-	// 먼저 문장 표시
+	//먼저 문장 표시
 	if (DialogWidget)
 	{
 		DialogWidget->UpdateDialog(DialogLines[CurrentDialogIndex]);
 	}
 
-	// 특정 문장에서 사건파일 열기 조건
-	// 예: "사건파일" 키워드 포함 & 순경 NPC
+	//특정 문장에서 사건파일 열기 조건
 	if (bIsPoliceNPC && !bCaseFileShown && DialogLines[CurrentDialogIndex].LineText.ToString().Contains(TEXT("Report the case")))
 	{
 		ShowCaseFileWidget();
@@ -523,8 +499,8 @@ void ANPC::ShowNextLine()
 
 void ANPC::InitializeDialogLines()
 {
-	// 블루프린트 이름으로 NPC 구분해서 대사 세팅
-	DialogLines.Empty(); // 초기화
+	//블루프린트 이름으로 NPC 구분해서 대사 세팅
+	DialogLines.Empty(); //초기화
 
 	UE_LOG(LogTemp, Warning, TEXT("InitializeDialogLines: NPCType='%s'"), *NPCType);
 
@@ -608,7 +584,7 @@ void ANPC::ShowCaseFileWidget()
 
 	CurrentCaseFileWidget->AddToViewport(100);
 	CurrentCaseFileWidget->SetVisibility(ESlateVisibility::Visible);
-	CurrentCaseFileWidget->InvalidateLayoutAndVolatility(); // 강제 갱신
+	CurrentCaseFileWidget->InvalidateLayoutAndVolatility(); //강제 갱신
 
 	// TextBlock에 글 세팅
 	if (UTextBlock* TextBlock = Cast<UTextBlock>(CurrentCaseFileWidget->WidgetTree->FindWidget(TEXT("CaseFileText"))))
@@ -630,30 +606,14 @@ void ANPC::ShowCaseFileWidget()
 		UE_LOG(LogTemp, Warning, TEXT("TextBlock 'CaseFileText' not found in CaseFileWidget!"));
 	}
 
-	///////LOG
-	/*
-	if (!CurrentCaseFileWidget->WidgetTree)
-	{
-		UE_LOG(LogTemp, Error, TEXT("WidgetTree is nullptr!"));
-	}
-	else if (!CurrentCaseFileWidget->WidgetTree->FindWidget(TEXT("CaseFileText")))
-	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot find 'CaseFileText' in WidgetTree!"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("'CaseFileText' found, setting text."));
-	}
-	*/
-	///////
 
-	// 입력 모드 UI + 게임 입력 모두 허용
+	//입력 모드 UI + 게임 입력 모두 허용
 	FInputModeGameAndUI InputMode;
 	InputMode.SetWidgetToFocus(CurrentCaseFileWidget->GetCachedWidget());
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	PC->SetInputMode(InputMode);
 
-	// 대화 일시정지
+	//대화 일시정지
 	bDialogPaused = true;
 
 }
@@ -665,10 +625,10 @@ void ANPC::CloseCaseFileWidget()
 	CurrentCaseFileWidget->RemoveFromParent();
 	CurrentCaseFileWidget = nullptr;
 
-	// 대화 재개
+	//대화 재개
 	bDialogPaused = false;
 
-	// 사건파일 끝나고 다음 문장 진행
+	//사건파일 끝나고 다음 문장 진행
 	ShowDialogLine();
 	CurrentDialogIndex++;
 }
