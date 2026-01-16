@@ -14,30 +14,20 @@ ADoor::ADoor()
 	// Mesh
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	SetRootComponent(Mesh);
-	Mesh->SetMobility(EComponentMobility::Movable);           // È¸Àü ¹®
-	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));   // ±âº»Àº ¸·À½
+	Mesh->SetMobility(EComponentMobility::Movable);           // íšŒì „ ë¬¸
+	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));   // ê¸°ë³¸ì€ ë§‰ìŒ
 	Mesh->SetRenderCustomDepth(false);
 	Mesh->SetCustomDepthStencilValue(1);
 	//Mesh->SetRelativeScale3D(FVector(1.0f, 1.1f, 1.2f));
 
-	// NavMesh¿¡ ¿µÇâ Á¦¿Ü
-	Mesh->SetCanEverAffectNavigation(false);
-#if WITH_EDITORONLY_DATA
-	Mesh->bFillCollisionUnderneathForNavmesh = false;
-#endif
 
-	// ±âº» ¹® ¸®¼Ò½º(¼±ÅÃ)
+	// ê¸°ë³¸ ë¬¸ ë¦¬ì†ŒìŠ¤
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> TempMesh(
 		TEXT("'/Game/Hospital/meshes/SM_Door_1_Door.SM_Door_1_Door'"));
 	if (TempMesh.Succeeded())
 	{
 		Mesh->SetStaticMesh(TempMesh.Object);
 	}
-
-	// NavModifier: ´ÝÈ÷¸é ¸·Èû
-	NavMod = CreateDefaultSubobject<UNavModifierComponent>(TEXT("NavMod"));
-	NavMod->SetAreaClass(UNavArea_Null::StaticClass());
-	NavMod->FailsafeExtent = FVector(60.f, 90.f, 120.f);
 
 	bIsOpen = false;
 }
@@ -48,11 +38,11 @@ void ADoor::BeginPlay()
 
 	InteractableData = InstanceInteractableData;
 
-	// ÃÊ±â È¸Àü
+	// ì´ˆê¸° íšŒì „
 	ClosedRotation = GetActorRotation();
 	TargetRotation = ClosedRotation;
 
-	// ½ÃÀÛ »óÅÂ Á¤·Ä
+	// ì‹œìž‘ ìƒíƒœ ì •ë ¬
 	if (bIsOpen)
 	{
 		if (NavMod) NavMod->SetAreaClass(nullptr);
@@ -70,7 +60,7 @@ void ADoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// ºÎµå·¯¿î È¸Àü
+	// ë¶€ë“œëŸ¬ìš´ íšŒì „
 	const FRotator Current = GetActorRotation();
 	SetActorRotation(FMath::RInterpTo(Current, TargetRotation, DeltaTime, OpenSpeed));
 }
@@ -90,13 +80,13 @@ void ADoor::EndInteract() {}
 
 void ADoor::Interact(APolice* /*_Playercharacter*/)
 {
-	// ÇÃ·¹ÀÌ¾î´Â Åä±Û À¯Áö
+	// í”Œë ˆì´ì–´ëŠ” í† ê¸€ ìœ ì§€
 	ToggleDoorByAI(this);
 }
 
-// ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-// °ø¿ë Åä±Û (ÇÃ·¹ÀÌ¾î¿ë; AI´Â OpenByAI/CloseByAI ±ÇÀå)
-// ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// í”Œë ˆì´ì–´ìš© í† ê¸€ 
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 void ADoor::ToggleDoorByAI(AActor* Opener)
 {
 	const float Now = GetWorld()->GetTimeSeconds();
@@ -105,7 +95,7 @@ void ADoor::ToggleDoorByAI(AActor* Opener)
 	bIsOpen = !bIsOpen;
 	LastChangeTime = Now;
 
-	// »ç¿îµå
+	// ì‚¬ìš´ë“œ
 	if (bIsOpen && DoorOpenSoundCue)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, DoorOpenSoundCue, GetActorLocation());
@@ -119,33 +109,27 @@ void ADoor::ToggleDoorByAI(AActor* Opener)
 			{
 				UGameplayStatics::PlaySoundAtLocation(this, DoorCloseSoundCue, GetActorLocation());
 			},
-			1.0f, // 1ÃÊ µÚ ½ÇÇà
-			false // ÇÑ ¹ø¸¸
+			1.0f, // 1ì´ˆ ë’¤ ì‹¤í–‰
+			false // í•œ ë²ˆë§Œ
 		);
 	}
 
-	// È¸Àü ¸ñÇ¥
+	// íšŒì „ ëª©í‘œ
 	TargetRotation = bIsOpen
 		? (ClosedRotation + FRotator(0.f, OpenAngle, 0.f))
 		: ClosedRotation;
 
-	// NavMesh ¿µ¿ª ÀüÈ¯
-	if (NavMod)
-	{
-		NavMod->SetAreaClass(bIsOpen ? nullptr : UNavArea_Null::StaticClass());
-	}
-
-	// Ãæµ¹ Ã³¸®(ÇÃ·¹ÀÌ¾î/¸ó½ºÅÍ ºÐ±â Æ÷ÇÔ)
+	// ì¶©ëŒ ì²˜ë¦¬(í”Œë ˆì´ì–´/ëª¬ìŠ¤í„° ë¶„ê¸° í¬í•¨)
 	if (bIsOpen)
 	{
 		ApplyCollisionForOpen(Opener);
 	}
 	else
 	{
-		// ´ÝÈû: È®½ÇÈ÷ ¸·±â
+		// ë‹«íž˜: í™•ì‹¤ížˆ ë§‰ê¸°
 		if (Mesh)
 		{
-			// °í½ºÆ® Å¸ÀÌ¸Ó Å¬¸®¾î
+			// ê³ ìŠ¤íŠ¸ íƒ€ì´ë¨¸ í´ë¦¬ì–´
 			GetWorldTimerManager().ClearTimer(GhostTimerHandle);
 
 			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -155,72 +139,9 @@ void ADoor::ToggleDoorByAI(AActor* Opener)
 	}
 }
 
-// ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-// ¡Ú AI Àü¿ë: ÇÑ ¹æÇâ ¿ÀÇÂ
-// ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-void ADoor::OpenByAI(AActor* Opener)
-{
-	const float Now = GetWorld()->GetTimeSeconds();
-	if (bLocked || bIsOpen || (Now - LastChangeTime) < ToggleCooldown) return;
 
-	bIsOpen = true;
-	LastChangeTime = Now;
 
-	TargetRotation = ClosedRotation + FRotator(0.f, OpenAngle, 0.f);
-
-	if (NavMod) NavMod->SetAreaClass(nullptr);
-
-	ApplyCollisionForOpen(Opener);
-
-	if (DoorOpenSoundCue)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, DoorOpenSoundCue, GetActorLocation());
-	}
-}
-
-// ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-// ¡Ú AI Àü¿ë: ÇÑ ¹æÇâ Å¬·ÎÁî
-// ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-void ADoor::CloseByAI()
-{
-	const float Now = GetWorld()->GetTimeSeconds();
-	if (bLocked || !bIsOpen || (Now - LastChangeTime) < ToggleCooldown) return;
-
-	bIsOpen = false;
-	LastChangeTime = Now;
-
-	TargetRotation = ClosedRotation;
-
-	// »ç¿îµå(µô·¹ÀÌ)
-	if (!bIsOpen && DoorCloseSoundCue)
-	{
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(
-			TimerHandle,
-			[this]()
-			{
-				UGameplayStatics::PlaySoundAtLocation(this, DoorCloseSoundCue, GetActorLocation());
-			},
-			1.0f,
-			false
-		);
-	}
-
-	if (NavMod) NavMod->SetAreaClass(UNavArea_Null::StaticClass());
-
-	// È®½ÇÈ÷ ¸·±â
-	if (Mesh)
-	{
-		// °í½ºÆ® Å¸ÀÌ¸Ó Å¬¸®¾î
-		GetWorldTimerManager().ClearTimer(GhostTimerHandle);
-
-		Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-		Mesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
-	}
-}
-
-// ¹® ¹Ý´ëÆí ÁÂÇ¥ °è»ê
+// ë¬¸ ë°˜ëŒ€íŽ¸ ì¢Œí‘œ ê³„ì‚°
 FVector ADoor::GetPassThroughPoint(AActor* Opener) const
 {
 	const FVector Origin = GetActorLocation();
@@ -239,17 +160,17 @@ void ADoor::DoctorInteract(ADoctor* _Playercharacter)
 {
 	bIsOpen = !bIsOpen;
 
-	// Åä±Û¿¡ µû¶ó ¸ñÇ¥ È¸Àü
+	// í† ê¸€ì— ë”°ë¼ ëª©í‘œ íšŒì „
 	TargetRotation = bIsOpen ? ClosedRotation + FRotator(0, OpenAngle, 0) : ClosedRotation;
 
-	// ÇÃ·¹ÀÌ¾î »óÈ£ÀÛ¿ë ¡æ Opener¸¦ this(¹®)·Î Ã³¸®(¸ó½ºÅÍ °í½ºÆ® ¹ÌÀû¿ë)
+	// í”Œë ˆì´ì–´ ìƒí˜¸ìž‘ìš© â†’ Openerë¥¼ this(ë¬¸)ë¡œ ì²˜ë¦¬(ëª¬ìŠ¤í„° ê³ ìŠ¤íŠ¸ ë¯¸ì ìš©)
 	if (bIsOpen)
 	{
 		ApplyCollisionForOpen(this);
 	}
 	else
 	{
-		// ´ÝÈû: È®½ÇÈ÷ ¸·±â
+		// ë‹«íž˜: í™•ì‹¤ížˆ ë§‰ê¸°
 		if (Mesh)
 		{
 			GetWorldTimerManager().ClearTimer(GhostTimerHandle);
@@ -260,7 +181,7 @@ void ADoor::DoctorInteract(ADoctor* _Playercharacter)
 		}
 	}
 
-	// »ç¿îµå
+	// ì‚¬ìš´ë“œ
 	if (bIsOpen && DoorOpenSoundCue)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, DoorOpenSoundCue, GetActorLocation());
@@ -280,56 +201,25 @@ void ADoor::DoctorInteract(ADoctor* _Playercharacter)
 	}
 }
 
-// ====== ¸ó½ºÅÍ Àü¿ë º¸Á¶ ·ÎÁ÷ ======
-
-bool ADoor::IsMonster(const AActor* Opener) const
-{
-	// ÅÂ±× ±â¹Ý ÆÇÁ¤(ÇÁ·ÎÁ§Æ®¿¡¼­ ¸ó½ºÅÍ¿¡ "Enemy" ¶Ç´Â "Monster" ÅÂ±×¸¦ ºÙ¿© »ç¿ë)
-	if (!Opener) return false;
-	if (Opener->ActorHasTag(FName(TEXT("Enemy"))))   return true;
-	if (Opener->ActorHasTag(FName(TEXT("Monster")))) return true;
-
-	// ÇÊ¿ä ½Ã ÇâÈÄ: IEnemyInterface, Æ¯Á¤ Å¬·¡½º Ä³½ºÆ® µîÀ¸·Î È®Àå °¡´É
-	return false;
-}
-
 void ADoor::ApplyCollisionForOpen(AActor* Opener)
 {
 	if (!Mesh) return;
 
-	// ±âº»: ¿­¸² ½Ã Pawn¸¸ Åë°ú(±âÁ¸ µ¿ÀÛ À¯Áö)
+	// ê¸°ë³¸: ì—´ë¦¼ ì‹œ Pawnë§Œ í†µê³¼(ê¸°ì¡´ ë™ìž‘ ìœ ì§€)
 	if (bDisablePawnBlockWhenOpen)
 	{
 		Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Mesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
 
-	// ¸ó½ºÅÍ°¡ ¿©´Â °æ¿ì¿¡´Â ÂªÀº ½Ã°£ ¿ÏÀü NoCollision·Î ¿­¾î ¡®È®½Ç ÆÐ½º¡¯
-	if (IsMonster(Opener) && GhostDuration > 0.f)
-	{
-		// ±âÁ¸ Å¸ÀÌ¸Ó°¡ ÀÖ´Ù¸é °»½Å
-		GetWorldTimerManager().ClearTimer(GhostTimerHandle);
-
-		// ¿ÏÀü °í½ºÆ®
-		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		// GhostDuration ÈÄ ¡°¿­¸² »óÅÂ Àü¿ë Ãæµ¹¡±·Î º¹±¸
-		GetWorldTimerManager().SetTimer(
-			GhostTimerHandle,
-			this,
-			&ADoor::RestoreOpenCollision,
-			GhostDuration,
-			false
-		);
-	}
 }
 
 void ADoor::RestoreOpenCollision()
 {
-	// ¹®ÀÌ ¾ÆÁ÷ ¿­·ÁÀÖÀ» ¶§¸¸ º¹±¸
+	// ë¬¸ì´ ì•„ì§ ì—´ë ¤ìžˆì„ ë•Œë§Œ ë³µêµ¬
 	if (!bIsOpen || !Mesh) return;
 
-	// ¡®¿­¸² »óÅÂ¡¯ ±âº» Ãæµ¹(= Pawn¸¸ Ignore)·Î µÇµ¹¸²
+	// â€˜ì—´ë¦¼ ìƒíƒœâ€™ ê¸°ë³¸ ì¶©ëŒ(= Pawnë§Œ Ignore)ë¡œ ë˜ëŒë¦¼
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	Mesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
