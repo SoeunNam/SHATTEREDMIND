@@ -63,7 +63,7 @@ NPC의 SkeletalMesh는 충돌 판정(Trace)에서 제외(Ignore)시킵니다.
 
 물리적 밀림 방지를 위해 PhysicsInteraction을 비활성화하여 안정적인 대화 환경을 구축했습니다.
 
-C++
+```C++
 
 // NPC.cpp - 충돌체 설정 예시
 void ANPC::SetupCollisionForMovingNPC()
@@ -73,7 +73,7 @@ void ANPC::SetupCollisionForMovingNPC()
     Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly); // 물리 연산 제외, 쿼리만 수행
     Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap); // 캐릭터가 끼이는 현상 방지
 }
-
+```
 ## Source Code Structure
 APolice: 메인 캐릭터 컨트롤러. 입력 처리 및 상호작용 레이캐스팅 담당.
 
