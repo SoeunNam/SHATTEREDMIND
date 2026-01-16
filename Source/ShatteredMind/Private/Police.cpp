@@ -109,7 +109,7 @@ APolice::APolice()
 		ShoesMesh->SetSkeletalMesh(ShoesAsset.Object);
 	}
 
-	// 캐릭터 초기화 시 충돌 설정 20251029 박희빈 캐릭터 튕겨나감 현상 제거 위함
+	// 캐릭터 초기화 시 충돌 설정/캐릭터 튕겨나감 현상 제거 위함
 	SetupCollisionSettings();
 
 
@@ -134,9 +134,9 @@ void APolice::BeginPlay()
 	HUD = Cast<APoliceHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 
 	FString CurrentLevelName = GetWorld()->GetMapName();
-	CurrentLevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // PIE 접두어 제거
+	CurrentLevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); //PIE 접두어 제거
 
-	if (CurrentLevelName == TEXT("Map_Final_Police"))  // 레벨 이름 정확히 넣기
+	if (CurrentLevelName == TEXT("Map_Final_Police"))  //레벨 이름 정확히 넣기
 	{
 		if (PoliceMemoOffWidgetClass)
 		{
@@ -145,8 +145,8 @@ void APolice::BeginPlay()
 			PoliceMemoOffWidget = CreateWidget<UUserWidget>(GetWorld(), PoliceMemoOffWidgetClass);
 			if (PoliceMemoOffWidget)
 			{
-				PoliceMemoOffWidget->SetVisibility(ESlateVisibility::Visible);  // 확실히 Visible
-				PoliceMemoOffWidget->AddToViewport(0);  // 항상 화면에 있도록 추가
+				PoliceMemoOffWidget->SetVisibility(ESlateVisibility::Visible);  //확실히 Visible
+				PoliceMemoOffWidget->AddToViewport(0);  //항상 화면에 있도록 추가
 			}
 		}
 	}
@@ -158,8 +158,8 @@ void APolice::BeginPlay()
 		if (PoliceMemoOnWidget)
 		{
 
-			PoliceMemoOnWidget->AddToViewport(5); // 항상 화면에 있도록 추가
-			PoliceMemoOnWidget->SetVisibility(ESlateVisibility::Hidden); // 처음에는 숨김
+			PoliceMemoOnWidget->AddToViewport(5); //항상 화면에 있도록 추가
+			PoliceMemoOnWidget->SetVisibility(ESlateVisibility::Hidden); //처음에는 숨김
 			if (UPoliceMemoWidget* MemoWidget = Cast<UPoliceMemoWidget>(PoliceMemoOnWidget))
 			{
 				MemoWidget->MemoText_1->SetVisibility(ESlateVisibility::Hidden);
@@ -173,17 +173,8 @@ void APolice::BeginPlay()
 	}
 
 	//메모장 잠금 초기화
-	bMemoUnlocked.Init(false, 6); // 크기 5, 모두 false
-	/*
-		if (PoliceMemoOnWidget)
-		{
-			// 위젯이 이미 생성된 상태여야 함
-			if (UPoliceMemoWidget* MemoWidget = Cast<UPoliceMemoWidget>(PoliceMemoOnWidget))
-			{
-				MemoWidget->InitializeMemoTexts();
-			}
-		}
-		*/
+	bMemoUnlocked.Init(false, 6); //크기 5, 모두 false
+	
 		//독백 대사 초기화
 	MonologueLines = {
 	TEXT("자물쇠 암호는 다섯 글자의 단어..."),
@@ -191,71 +182,13 @@ void APolice::BeginPlay()
 	TEXT("복도 끝 방이라고 했었지."),
 	TEXT("자물쇠를 맞춰봐야겠어.")
 	};
-	//StartMonologueRepeat();
-
-	/*
-
-	  // --- FootstepLoopSound 세팅 ---
-	if (FootstepLoopSoundAsset.IsValid())
-	{
-		FootstepLoopSound = FootstepLoopSoundAsset.Get();
-	}
-	else if (FootstepLoopSoundAsset.ToSoftObjectPath().IsValid())
-	{
-		FootstepLoopSound = FootstepLoopSoundAsset.LoadSynchronous();
-	}
-
-	if (FootstepLoopSound)
-	{
-		FootstepLoopAC = NewObject<UAudioComponent>(this, TEXT("PoliceFootstepLoopAC"));
-		if (FootstepLoopAC)
-		{
-			FootstepLoopAC->bAutoActivate = false;          // 자동 재생 X
-			FootstepLoopAC->bAllowSpatialization = true;    // 3D 위치에서 들리게
-			FootstepLoopAC->bIsUISound = false;             // UI 사운드 아님 (월드 사운드)
-			FootstepLoopAC->SetSound(FootstepLoopSound);
-
-			// 바로 Register/Attach 하지 않고 한 틱 뒤에 처리 (EnemyFSM 방식)
-			GetWorldTimerManager().SetTimer(
-				FootstepInitTimerHandle,
-				this,
-				&APolice::InitFootstepAudioComponentDelayed,
-				0.0f,
-				false
-			);
-		}
-	}*/
-
-	/*
-	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
-	{
-		MoveComp->bEnablePhysicsInteraction = false;   // 물리 기반 상호작용 차단
-		MoveComp->bPushForceUsingZOffset = false;      // Z축으로 띄우는 보정 제거
-		MoveComp->PushForceFactor = 0.f;               // 밀림 강도 0
-		MoveComp->TouchForceFactor = 0.f;              // 접촉으로 주는 힘 제거
-		MoveComp->bTouchForceScaledToMass = false;
-		MoveComp->bEnableScopedMovementUpdates = false;
-
-		//RVO 회피 및 밀기 비활성화 (UE5.6 방식)
-		MoveComp->bUseRVOAvoidance = false;
-		MoveComp->SetAvoidanceEnabled(false);
-		MoveComp->AvoidanceConsiderationRadius = 0.f;
-	}
-
-	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
-	{
-		Capsule->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		Capsule->SetCollisionResponseToAllChannels(ECR_Block);
-		Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-		Capsule->SetSimulatePhysics(false);
-		Capsule->SetCollisionObjectType(ECC_GameTraceChannel1); // 커스텀 PoliceCharacter
-	}*/
+	
 }
 
 void APolice::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	//StopMonologueRepeat();           // 반복 타이머 안전하게 정리
-	Super::EndPlay(EndPlayReason);   // 부모 클래스 기본 EndPlay 호출
+	//StopMonologueRepeat(); //반복 타이머 안전하게 정리
+	Super::EndPlay(EndPlayReason); //부모 클래스 기본 EndPlay 호출
 }
 
 
@@ -277,33 +210,9 @@ void APolice::Tick(float DeltaTime)
 		PerformInteractionCheck();
 	}
 
-
 	//이동처리 
 	direction = FVector::ZeroVector;
 
-	/*
-		// ----- 여기부터 발소리 처리 -----
-	{
-		const float Speed2D = GetVelocity().Size2D();
-
-	// "걷는 중"이라고 볼 최소 속도 기준 (네가 원하는 대로 조절 가능)
-	// 20.f 정도면 아주 살짝만 움직여도 소리 나고,
-	// 120.f 정도면 진짜로 걷기 시작할 때부터 나.
-	const bool bShouldPlayFootstep =
-		(Speed2D > 120.f) &&                                  // 충분히 이동 중이고
-		GetCharacterMovement() &&
-		GetCharacterMovement()->IsMovingOnGround();           // 공중 점프 중엔 X
-
-	if (bShouldPlayFootstep)
-	{
-		StartFootstepLoop();
-	}
-	else
-	{
-		StopFootstepLoop(0.03f);
-	}
-	}
-		// ----- 발소리 처리 끝 -----*/
 }
 
 // Called to bind functionality to input
@@ -321,7 +230,7 @@ void APolice::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		PlayerInput->BindAction(ia_Zoom, ETriggerEvent::Triggered, this, &APolice::Zoom);
 		PlayerInput->BindAction(ia_PoliceMemo, ETriggerEvent::Completed, this, &APolice::PoliceMemoOnOff);
 		PlayerInput->BindAction(ia_Interaction, ETriggerEvent::Completed, this, &APolice::PoliceBeginInteract);
-		PlayerInput->BindAction(ia_LockWheel, ETriggerEvent::Triggered, this, &APolice::OnLockWheelInput); // 20251101 박희빈 경찰이 비밀번호 자물쇠를 마우스 휠로 조작하기 위함
+		PlayerInput->BindAction(ia_LockWheel, ETriggerEvent::Triggered, this, &APolice::OnLockWheelInput); //자물쇠를 마우스 휠로 조작
 
 
 	}
@@ -346,12 +255,7 @@ void APolice::Zoom(const FInputActionValue& _inputValue)
 	{
 		return;
 	}
-	//줌 적용 (100~400 범위 제한)
-	//위에서 꺼낸 value 값을 팔 길이에 적용시킴
-	//Clamp 설명
-	//springArmComp->TargetArmLength - value * 10.0f =계산할 값
-	//100.0f = 최솟값
-	//400.0 = 최댓값
+	
 	springArmComp->TargetArmLength = FMath::Clamp(springArmComp->TargetArmLength - value * 20.f, 100.f, 400.f);
 }
 
@@ -374,18 +278,18 @@ void APolice::InputJump(const FInputActionValue& _inputValue)
 //라인트레이스 생성(시작지점, 끝지점 지정)
 void APolice::PerformInteractionCheck()
 {
-	// 이미 NPC와 대화 중이라면 라인트레이스 안 함
+	//이미 NPC와 대화 중이라면 라인트레이스 안 함
 	if (InteractionData.CurrentInteractable)
 	{
 		APickUp* PickUpActor = Cast<APickUp>(InteractionData.CurrentInteractable);
 		ANPC* NPCActor = Cast<ANPC>(InteractionData.CurrentInteractable);
 		if ((NPCActor && NPCActor->IsInteracting()) || (PickUpActor && PickUpActor->bIsInteracting))
 		{
-			return; // 대화 중엔 감지 중단
+			return; //대화 중엔 감지 중단
 		}
 	}
 
-	//라인트레이스 생성 시점?
+	//라인트레이스 생성 시점
 	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
 	//라인트레이스 시작 지점
 	FVector TraceStart = GetPawnViewLocation();
@@ -649,24 +553,6 @@ void APolice::UnlockMemoWrap(int32 MemoIndex)
 		PoliceMemoOnWidget->UnlockMemo(MemoIndex);
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("Memo %d unlocked"), MemoIndex);
-
-	/*
-	// 마지막 요약 체크: 1~4가 모두 해금되면 5번 해금
-	if (!bMemoUnlocked[5] && bMemoUnlocked[0] && bMemoUnlocked[1] && bMemoUnlocked[2] && bMemoUnlocked[3] && bMemoUnlocked[4])
-	{
-		bMemoUnlocked[5] = true;
-		PoliceMemoOnWidget->UnlockMemo(6);
-		UE_LOG(LogTemp, Warning, TEXT("Final Memo 6 unlocked"));
-	}
-	// 모든 메모 해금되면 반복 시작
-	if (AllMemosUnlocked())
-	{
-		StartMonologueRepeat();
-	}*/
-
-	// 한 번만 표시
-	//ShowMonologueWidget();
 }
 
 bool APolice::AllMemosUnlocked() const
@@ -774,23 +660,21 @@ void APolice::StopMonologueRepeat()
 void APolice::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Overlap Begin Triggered!"));
-
-	//ShowMonologueWidget();
 }
 
 void APolice::SetupCollisionSettings()
 {
-	// 1. 캡슐 컴포넌트: Pawn과 충돌 시 Overlap 처리
+	//캡슐 컴포넌트: Pawn과 충돌 시 Overlap 처리
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
-	// 2. Physics Interaction 완전히 끄기
+	//Physics Interaction 완전히 끄기
 	if (GetCharacterMovement())
 	{
 		GetCharacterMovement()->bEnablePhysicsInteraction = false;
 		GetCharacterMovement()->bPushForceUsingZOffset = false;
 		GetCharacterMovement()->PushForceFactor = 0.f;
 
-		// 필요 시 충돌로 인한 점프 입력 방지
+		//필요 시 충돌로 인한 점프 입력 방지
 		GetCharacterMovement()->bEnableScopedMovementUpdates = false;
 	}
 }
@@ -801,14 +685,14 @@ void APolice::OnLockWheelInput(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT("[Police] Wheel input: %.2f"), AxisValue);
 
 
-	// 🔹 자물쇠 인터랙트 중일 때만 작동하도록 조건 체크
+	//자물쇠 인터랙트 중일 때만 작동하도록 조건 체크
 	if (CurrentLockActor && CurrentLockActor->IsInspecting())
 	{
 		CurrentLockActor->OnWheelAxis(AxisValue);
 	}
 	else
 	{
-		// 🔹 평소엔 기존 줌 기능 사용
+		//평소엔 기존 줌 기능 사용
 		Zoom(Value);
 	}
 }
