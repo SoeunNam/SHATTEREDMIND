@@ -1,9 +1,11 @@
 # 🕵️‍♂️ SHATTERED MIND
+
 Unreal Engine 5.6 기반 3인칭 드라마, 심리, 미스터리, 추리 게임
 
 
 
-<img width="940" height="586" alt="image" src="https://github.com/user-attachments/assets/66ac1840-ed97-4558-a7fa-a0ae34ec7467" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/1ced2566-608b-4e11-a766-71f5fbd81f6c" />
+
 
 
 
