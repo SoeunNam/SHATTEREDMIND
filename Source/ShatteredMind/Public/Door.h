@@ -27,7 +27,7 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// Ã¥ÀÌ³ª ¾ÆÀÌÅÛ ¼³¸í (ºí·çÇÁ¸°Æ®¿¡¼­ °³º° ÁöÁ¤)
+	// ì±…ì´ë‚˜ ì•„ì´í…œ ì„¤ëª… (ë¸”ë£¨í”„ë¦°íŠ¸ì—ì„œ ê°œë³„ ì§€ì •)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
 	FText ItemDescription;
 
@@ -42,61 +42,28 @@ public:
 	virtual void BeginInteract() override;
 	virtual void EndInteract() override;
 	virtual void Interact(APolice* _Playercharacter) override;
-	virtual void DoctorInteract(ADoctor* _Playercharacter) override; // ÇÃ·¹ÀÌ¾î ÀÇ»çµµ »óÈ£ÀÛ¿ë
+	virtual void DoctorInteract(ADoctor* _Playercharacter) override; // í”Œë ˆì´ì–´ ì˜ì‚¬ë„ ìƒí˜¸ì‘ìš©
 
 	UPROPERTY(EditAnywhere, Category = "Door")
 	float OpenAngle = 90.f;
 
 	UPROPERTY(EditAnywhere, Category = "Door")
-	float OpenSpeed = 2.f; // È¸Àü ¼Óµµ
+	float OpenSpeed = 2.f; // íšŒì „ ì†ë„
 
 	bool bIsOpen = false;
 	FRotator ClosedRotation;
 	FRotator TargetRotation;
 
-	// ¦¡¦¡¦¡ »óÈ£ÀÛ¿ë(ÇÃ·¹ÀÌ¾î/AI) ¦¡¦¡¦¡
+	// â”€â”€â”€ ìƒí˜¸ì‘ìš©(í”Œë ˆì´ì–´/AI) â”€â”€â”€
 	UFUNCTION(BlueprintCallable, Category = "Door")
-	void ToggleDoorByAI(AActor* Opener); // ÇÃ·¹ÀÌ¾î´Â Åä±Û »ç¿ë OK
+	void ToggleDoorByAI(AActor* Opener); // í”Œë ˆì´ì–´ëŠ” í† ê¸€ ì‚¬ìš© OK
 
-	// ¡Ú AI Àü¿ë: ÇÑ ¹æÇâ ÇÔ¼ö (Áßº¹ Åä±Û ¹æÁö¿ë)
-	UFUNCTION(BlueprintCallable, Category = "Door")
-	void OpenByAI(AActor* Opener);
-
-	UFUNCTION(BlueprintCallable, Category = "Door")
-	void CloseByAI();
-
-	UFUNCTION(BlueprintCallable, Category = "Door")
-	bool IsOpen() const { return bIsOpen; }
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
-	bool bLocked = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
-	float OpenNoiseLoudness = 1.3f;
-
-	// ¿­¸² »óÅÂ¿¡¼­ Pawn Ãæµ¹ ¹«½Ã ¿©ºÎ(±âÁ¸ µ¿ÀÛ À¯Áö¿ë)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
-	bool bDisablePawnBlockWhenOpen = true;
-
-	UFUNCTION(BlueprintCallable, Category = "Door")
-	FVector GetPassThroughPoint(AActor* Opener) const;
-
-	// ¸ó½ºÅÍ Àü¿ë °í½ºÆ® Áö¼Ó½Ã°£(ÀÌ ½Ã°£ µ¿¾È ¿ÏÀü NoCollision)
-	UPROPERTY(EditAnywhere, Category = "Door")
-	float GhostDuration = 0.8f;
-
-	UPROPERTY(EditAnywhere, Category = "Door")
-	float PassThroughOffset = 220.f;
-
-	// NavMesh °»½Å¿ë
-	UPROPERTY(VisibleAnywhere, Category = "Door")
-	UNavModifierComponent* NavMod = nullptr;
-
-	// ¡Ú ¿¬Å¸ ¹æÁö(Åä±Û/¿ÀÇÂ/Å¬·ÎÁî °øÅë)
+	
+	// â˜… ì—°íƒ€ ë°©ì§€(í† ê¸€/ì˜¤í”ˆ/í´ë¡œì¦ˆ ê³µí†µ)
 	UPROPERTY(EditAnywhere, Category = "Door")
 	float ToggleCooldown = 0.35f;
 
-	// »ç¿îµå
+	// ì‚¬ìš´ë“œ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door Sounds")
 	USoundCue* DoorOpenSoundCue;
 
@@ -106,13 +73,13 @@ public:
 private:
 	float LastChangeTime = -1000.f;
 
-	// ===== ¸ó½ºÅÍ Àü¿ë Ã³¸® º¸Á¶ ¸Ş¼­µå =====
+	// ===== ëª¬ìŠ¤í„° ì „ìš© ì²˜ë¦¬ ë³´ì¡° ë©”ì„œë“œ =====
 	bool IsMonster(const AActor* Opener) const;
 
-	// ¿­¸² ½Ã Ãæµ¹ Àû¿ë(ÇÃ·¹ÀÌ¾î/¸ó½ºÅÍ ºĞ±â)
+	// ì—´ë¦¼ ì‹œ ì¶©ëŒ ì ìš©(í”Œë ˆì´ì–´/ëª¬ìŠ¤í„° ë¶„ê¸°)
 	void ApplyCollisionForOpen(AActor* Opener);
 
-	// °í½ºÆ® ±â°£ Á¾·á ÈÄ, ¿­·ÁÀÖ´Â »óÅÂ¶ó¸é ¡®¿­¸²¿ë Ãæµ¹¡¯·Î º¹±¸
+	// ê³ ìŠ¤íŠ¸ ê¸°ê°„ ì¢…ë£Œ í›„, ì—´ë ¤ìˆëŠ” ìƒíƒœë¼ë©´ â€˜ì—´ë¦¼ìš© ì¶©ëŒâ€™ë¡œ ë³µêµ¬
 	void RestoreOpenCollision();
 
 	FTimerHandle GhostTimerHandle;
