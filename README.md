@@ -11,7 +11,7 @@ Unreal Engine 5.6 기반 3인칭 드라마, 심리, 미스터리, 추리 게임
 ## Project Overview (프로젝트 개요)
 개발 기간: 2025.09 ~ 2025.11 (약 2개월)
 
-개발 인원: 3인 개발 (클라이언트 프로그래머)
+개발 인원: 3인 개발 (본인: Client Programmer)
 
 개발 환경: Unreal Engine 5.6, Visual Studio 2022 (C++)
 
